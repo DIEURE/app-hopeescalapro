@@ -5,6 +5,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { colors } from './src/config/theme';
+import { navigationRef } from './src/navigation/navigationRef';
 
 const navTheme = {
   ...DarkTheme,
@@ -28,7 +29,7 @@ function AppContent() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <NavigationContainer theme={navTheme}>
+      <NavigationContainer ref={navigationRef} theme={navTheme}>
         <AppNavigator />
       </NavigationContainer>
     </SafeAreaView>

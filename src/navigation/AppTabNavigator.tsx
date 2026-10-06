@@ -1,34 +1,64 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { CalendarDays, Music, User } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  CalendarDays,
+  Music,
+  Home,
+  Menu,
+} from 'lucide-react-native';
+import * as NavigationBar from 'expo-navigation-bar';
+
+import HomeScreen from '../screens/home/HomeScreen';
 import MinhasEscalasScreen from '../screens/escalas/MinhasEscalasScreen';
 import RepertorioScreen from '../screens/repertorio/RepertorioScreen';
-import PerfilScreen from '../screens/perfil/PerfilScreen';
-import { colors } from '../config/theme';
+import MaisScreen from '../screens/mais/MaisScreen';
 
 const Tab = createBottomTabNavigator();
+const AZUL_CLARO = '#38BDF8';
 
 export default function AppTabNavigator() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 10 : 8);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      try {
+        NavigationBar.setBackgroundColorAsync(AZUL_CLARO);
+        NavigationBar.setButtonStyleAsync('dark');
+      } catch (error) {}
+    }
+  }, []);
+
   return (
     <Tab.Navigator
-      initialRouteName="Escalas"
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0b1120',
-          borderTopColor: colors.cardBorder,
-          height: 60,
-          paddingBottom: 8,
+          backgroundColor: '#033c60',
+          borderTopColor: 'rgba(255, 255, 255, 0.1)',
+          height: 60 + bottomInset,
+          paddingBottom: bottomInset,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: '#38BDF8',
+        tabBarInactiveTintColor: '#94A3B8',
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
         },
       }}
     >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Início',
+          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+        }}
+      />
       <Tab.Screen
         name="Escalas"
         component={MinhasEscalasScreen}
@@ -46,11 +76,11 @@ export default function AppTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Perfil"
-        component={PerfilScreen}
+        name="Mais"
+        component={MaisScreen}
         options={{
-          tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          tabBarLabel: 'Mais',
+          tabBarIcon: ({ color, size }) => <Menu color={color} size={size} />,
         }}
       />
     </Tab.Navigator>
