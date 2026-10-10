@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
 import {
   Calendar,
@@ -26,7 +27,6 @@ import {
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
-import { colors } from '../../config/theme';
 
 export type StatusPresenca = 'CONFIRMADO' | 'RECUSADO' | 'PENDENTE';
 
@@ -217,8 +217,8 @@ export default function MinhasEscalasScreen() {
     if (jaPassou) {
       return (
         <View style={[styles.statusBadge, styles.statusEncerrado]}>
-          <CheckCheck size={12} color={colors.textMuted} />
-          <Text style={[styles.statusTexto, { color: colors.textMuted }]}>
+          <CheckCheck size={12} color="#9CA3AF" />
+          <Text style={[styles.statusTexto, { color: '#6B7280' }]}>
             {status === 'CONFIRMADO' ? 'Concluída' : 'Finalizada'}
           </Text>
         </View>
@@ -228,23 +228,23 @@ export default function MinhasEscalasScreen() {
     if (status === 'CONFIRMADO') {
       return (
         <View style={[styles.statusBadge, styles.statusConfirmado]}>
-          <CheckCircle2 size={12} color="#22c55e" />
-          <Text style={[styles.statusTexto, { color: '#22c55e' }]}>Confirmado</Text>
+          <CheckCircle2 size={12} color="#15803D" />
+          <Text style={[styles.statusTexto, { color: '#15803D' }]}>Confirmado</Text>
         </View>
       );
     }
     if (status === 'RECUSADO') {
       return (
         <View style={[styles.statusBadge, styles.statusRecusado]}>
-          <XCircle size={12} color="#ef4444" />
-          <Text style={[styles.statusTexto, { color: '#ef4444' }]}>Recusado</Text>
+          <XCircle size={12} color="#B91C1C" />
+          <Text style={[styles.statusTexto, { color: '#B91C1C' }]}>Recusado</Text>
         </View>
       );
     }
     return (
       <View style={[styles.statusBadge, styles.statusPendente]}>
-        <AlertCircle size={12} color="#f59e0b" />
-        <Text style={[styles.statusTexto, { color: '#f59e0b' }]}>Pendente</Text>
+        <AlertCircle size={12} color="#B45309" />
+        <Text style={[styles.statusTexto, { color: '#B45309' }]}>Pendente</Text>
       </View>
     );
   };
@@ -258,8 +258,8 @@ export default function MinhasEscalasScreen() {
       <View style={[styles.card, jaPassou && styles.cardPassado]}>
         <View style={styles.cardHeader}>
           <View style={[styles.dateBadge, jaPassou && styles.dateBadgePassado]}>
-            <Calendar size={14} color={jaPassou ? colors.textMuted : colors.primary} />
-            <Text style={[styles.dateText, jaPassou && { color: colors.textMuted }]}>
+            <Calendar size={13} color={jaPassou ? '#9CA3AF' : '#FF6B00'} />
+            <Text style={[styles.dateText, jaPassou && { color: '#6B7280' }]}>
               {formatarData(item.dataEscala)}
             </Text>
           </View>
@@ -268,16 +268,16 @@ export default function MinhasEscalasScreen() {
 
         <View style={styles.cultoRow}>
           {isManha ? (
-            <Sun size={14} color={jaPassou ? colors.textMuted : '#ea580c'} />
+            <Sun size={15} color={jaPassou ? '#9CA3AF' : '#EA580C'} />
           ) : (
-            <Moon size={14} color={jaPassou ? colors.textMuted : colors.primary} />
+            <Moon size={15} color={jaPassou ? '#9CA3AF' : '#6366F1'} />
           )}
-          <Text style={[styles.cultoTitulo, jaPassou && { color: colors.textSecondary }]}>
+          <Text style={[styles.cultoTitulo, jaPassou && { color: '#6B7280' }]}>
             {item.nomeCulto}
           </Text>
           {item.horario ? (
             <View style={styles.horarioBadge}>
-              <Clock size={11} color={colors.textSecondary} />
+              <Clock size={11} color="#6B7280" />
               <Text style={styles.horarioTexto}>{item.horario.substring(0, 5)}</Text>
             </View>
           ) : null}
@@ -285,16 +285,16 @@ export default function MinhasEscalasScreen() {
 
         <View style={styles.cardBody}>
           <View style={styles.roleRow}>
-            <Music size={16} color={jaPassou ? colors.textMuted : colors.primary} />
+            <Music size={15} color={jaPassou ? '#9CA3AF' : '#FF6B00'} />
             <Text style={styles.roleLabel}>Função:</Text>
-            <Text style={[styles.roleText, jaPassou && { color: colors.textSecondary }]}>
+            <Text style={[styles.roleText, jaPassou && { color: '#6B7280' }]}>
               {item.instrumentoOuFuncao}
             </Text>
           </View>
 
           {item.ministro ? (
             <View style={styles.roleRow}>
-              <User size={15} color={colors.textSecondary} />
+              <User size={15} color="#9CA3AF" />
               <Text style={styles.roleLabel}>Ministro:</Text>
               <Text style={styles.ministroText}>{item.ministro}</Text>
             </View>
@@ -310,21 +310,21 @@ export default function MinhasEscalasScreen() {
           onPress={() => abrirSalaEnsaio(item)}
           activeOpacity={0.8}
         >
-          <Headphones size={15} color={jaPassou ? colors.textMuted : colors.primary} />
-          <Text style={[styles.btnSalaEnsaioTexto, jaPassou && { color: colors.textMuted }]}>
+          <Headphones size={15} color={jaPassou ? '#9CA3AF' : '#FF6B00'} />
+          <Text style={[styles.btnSalaEnsaioTexto, jaPassou && { color: '#9CA3AF' }]}>
             Consultar Repertório
           </Text>
         </TouchableOpacity>
 
         {jaPassou ? (
           <View style={styles.cardPassadoAviso}>
-            <CheckCheck size={14} color={colors.textMuted} />
+            <CheckCheck size={14} color="#9CA3AF" />
             <Text style={styles.cardPassadoTexto}>Escala finalizada • Somente leitura</Text>
           </View>
         ) : (
           <View style={styles.cardAcoes}>
             {ocupado ? (
-              <ActivityIndicator size="small" color={colors.primary} />
+              <ActivityIndicator size="small" color="#FF6B00" />
             ) : (
               <>
                 <TouchableOpacity
@@ -337,7 +337,7 @@ export default function MinhasEscalasScreen() {
                   disabled={item.status === 'CONFIRMADO'}
                   activeOpacity={0.8}
                 >
-                  <CheckCircle2 size={15} color="#ffffff" />
+                  <CheckCircle2 size={15} color="#FFFFFF" />
                   <Text style={styles.btnTextoBranco}>
                     {item.status === 'CONFIRMADO' ? 'Confirmado' : 'Confirmar'}
                   </Text>
@@ -349,7 +349,7 @@ export default function MinhasEscalasScreen() {
                     onPress={() => handleRecusar(item)}
                     activeOpacity={0.8}
                   >
-                    <XCircle size={15} color="#ef4444" />
+                    <XCircle size={15} color="#DC2626" />
                     <Text style={styles.btnTextoRecusar}>Recusar</Text>
                   </TouchableOpacity>
                 )}
@@ -364,7 +364,8 @@ export default function MinhasEscalasScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+        <ActivityIndicator size="large" color="#FF6B00" />
         <Text style={styles.loadingText}>Buscando suas escalas...</Text>
       </View>
     );
@@ -373,9 +374,10 @@ export default function MinhasEscalasScreen() {
   if (erro) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
         <Text style={styles.errorText}>{erro}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={carregarEscalas}>
-          <RefreshCw size={16} color="#ffffff" />
+        <TouchableOpacity style={styles.retryButton} onPress={carregarEscalas} activeOpacity={0.85}>
+          <RefreshCw size={16} color="#FFFFFF" />
           <Text style={styles.retryButtonText}>Tentar Novamente</Text>
         </TouchableOpacity>
       </View>
@@ -384,6 +386,7 @@ export default function MinhasEscalasScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
       <View style={styles.titleBar}>
         <Text style={styles.pageTitle}>Minhas Escalas</Text>
         <Text style={styles.pageSubtitle}>Confira suas próximas participações</Text>
@@ -398,14 +401,19 @@ export default function MinhasEscalasScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor="#FF6B00"
+            colors={['#FF6B00']}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Calendar size={48} color={colors.cardBorder} />
-            <Text style={styles.emptyText}>Nenhuma escala agendada para você no momento.</Text>
+            <View style={styles.emptyIconCircle}>
+              <Calendar size={36} color="#9CA3AF" />
+            </View>
+            <Text style={styles.emptyTitle}>Sem escalas agendadas</Text>
+            <Text style={styles.emptyText}>
+              Você não possui nenhuma escala pendente ou confirmada no momento.
+            </Text>
           </View>
         }
       />
@@ -416,123 +424,142 @@ export default function MinhasEscalasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F9FAFB',
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F9FAFB',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
   },
   loadingText: {
     marginTop: 12,
-    color: colors.textSecondary,
+    color: '#6B7280',
     fontSize: 14,
+    fontWeight: '500',
   },
   titleBar: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
     paddingBottom: 12,
   },
   pageTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: colors.textPrimary,
+    color: '#1F2937',
+    letterSpacing: 0.3,
   },
   pageSubtitle: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: '#6B7280',
     marginTop: 2,
   },
   listContent: {
     padding: 20,
-    paddingTop: 8,
+    paddingTop: 4,
+    paddingBottom: 28,
   },
   card: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: colors.cardBorder,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardPassado: {
-    opacity: 0.72,
-    borderColor: colors.cardBorder,
+    backgroundColor: '#F9FAFB',
+    borderColor: '#E5E7EB',
+    opacity: 0.75,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   dateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: '#FFF5EB',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 8,
     gap: 6,
   },
   dateBadgePassado: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#F3F4F6',
   },
   dateText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#FF6B00',
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
   statusConfirmado: {
-    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    backgroundColor: '#DCFCE7',
   },
   statusRecusado: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: '#FEE2E2',
   },
   statusPendente: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: '#FEF3C7',
   },
   statusEncerrado: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#F3F4F6',
   },
   statusTexto: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   cultoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   cultoTitulo: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1F2937',
   },
   horarioBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     marginLeft: 6,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   horarioTexto: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#4B5563',
+    fontWeight: '700',
   },
   cardBody: {
     gap: 6,
-    paddingVertical: 4,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   roleRow: {
     flexDirection: 'row',
@@ -541,22 +568,23 @@ const styles = StyleSheet.create({
   },
   roleLabel: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   roleText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#1F2937',
   },
   ministroText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: '#374151',
   },
   obsText: {
     fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 4,
+    color: '#6B7280',
+    marginTop: 2,
     fontStyle: 'italic',
   },
   btnSalaEnsaio: {
@@ -564,19 +592,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.background,
+    backgroundColor: '#FFF5EB',
     borderWidth: 1,
-    borderColor: colors.cardBorder,
+    borderColor: '#FED7AA',
     borderRadius: 10,
-    paddingVertical: 8,
-    marginTop: 10,
+    paddingVertical: 9,
+    marginTop: 12,
   },
   btnSalaEnsaioPassado: {
-    borderColor: colors.cardBorder,
-    backgroundColor: 'transparent',
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
   },
   btnSalaEnsaioTexto: {
-    color: colors.primary,
+    color: '#FF6B00',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -585,9 +613,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
   },
   cardPassadoAviso: {
     flexDirection: 'row',
@@ -595,75 +620,100 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
   },
   cardPassadoTexto: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: '#9CA3AF',
     fontWeight: '600',
   },
   btnAcao: {
     flex: 1,
-    height: 38,
-    borderRadius: 8,
+    height: 40,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
   btnConfirmar: {
-    backgroundColor: '#16a34a',
+    backgroundColor: '#16A34A',
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   btnRecusar: {
-    backgroundColor: colors.background,
+    backgroundColor: '#FEF2F2',
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: '#FEE2E2',
   },
   btnDesabilitado: {
-    backgroundColor: '#15803d',
-    opacity: 0.8,
+    backgroundColor: '#15803D',
+    opacity: 0.85,
+    elevation: 0,
   },
   btnTextoBranco: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },
   btnTextoRecusar: {
-    color: '#ef4444',
+    color: '#DC2626',
     fontSize: 13,
     fontWeight: '700',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
-    gap: 12,
+    paddingVertical: 64,
+    paddingHorizontal: 24,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 4,
   },
   emptyText: {
-    color: colors.textMuted,
-    fontSize: 14,
+    color: '#6B7280',
+    fontSize: 13,
     textAlign: 'center',
-    maxWidth: 240,
+    maxWidth: 260,
+    lineHeight: 18,
   },
   errorText: {
-    color: colors.danger,
+    color: '#DC2626',
     fontSize: 14,
     marginBottom: 16,
     textAlign: 'center',
+    fontWeight: '500',
   },
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 10,
+    backgroundColor: '#FF6B00',
+    paddingVertical: 11,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   retryButtonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
   },
