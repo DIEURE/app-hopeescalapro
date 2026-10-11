@@ -12,6 +12,7 @@ export interface UsuarioLogado {
   empresaId: number;
   nomeEmpresa: string;
   telefone?: string;
+   empresaNome?: string; 
 }
 
 interface AuthContextData {

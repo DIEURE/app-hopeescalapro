@@ -1,30 +1,26 @@
 {
   "expo": {
-    "name": "hope-escala-mobile",
-    "slug": "hope-escala-mobile",
+    "name": "Hope Escala",
+    "slug": "hope-escala-pro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "ios": {
-      "supportsTablet": true
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF6B00"
     },
     "android": {
+      "package": "com.hope.escala",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false,
-      "package": "com.hopeescalapro.hopeescalamobile"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF6B00"
+      }
     },
     "extra": {
       "eas": {
-        "projectId": "755b3a1e-8922-4e92-9c40-6e880676a67b"
+        "projectId": "df2fbde8-a7a1-4f7b-a5b3-f4e910da5480"
       }
     }
   }
