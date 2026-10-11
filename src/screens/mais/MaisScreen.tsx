@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CalendarCheck,
   User,
@@ -13,9 +15,8 @@ import {
   Vote,
   ChevronRight,
   Sparkles,
+  LucideIcon,
 } from 'lucide-react-native';
-import ScreenContainer from '../../components/layout/ScreenContainer';
-import { colors } from '../../config/theme';
 import { navigate } from '../../navigation/navigationRef';
 
 interface ModuloItem {
@@ -23,18 +24,20 @@ interface ModuloItem {
   titulo: string;
   descricao: string;
   rota: string;
-  icone: React.ComponentType<{ size: number; color: string }>;
-  cor: string;
+  icone: LucideIcon;
+  corIcone: string;
+  bgIcone: string;
 }
 
 const MODULOS: ModuloItem[] = [
   {
     id: 'disponibilidade',
     titulo: 'Disponibilidade',
-    descricao: 'Informe os domingos e cultos em que você pode servir',
+    descricao: 'Informe os cultos e datas em que você pode servir',
     rota: 'Disponibilidade',
     icone: CalendarCheck,
-    cor: '#34D399',
+    corIcone: '#D97706',
+    bgIcone: '#FFFBEB',
   },
   {
     id: 'perfil',
@@ -42,7 +45,8 @@ const MODULOS: ModuloItem[] = [
     descricao: 'Dados cadastrais, instrumentos e preferências',
     rota: 'Perfil',
     icone: User,
-    cor: '#F472B6',
+    corIcone: '#2563EB',
+    bgIcone: '#EFF6FF',
   },
   {
     id: 'sala-ensaio',
@@ -50,7 +54,8 @@ const MODULOS: ModuloItem[] = [
     descricao: 'Metrônomo, cronômetro e dinâmica dos ensaios',
     rota: 'SalaEnsaio',
     icone: Users,
-    cor: '#38BDF8',
+    corIcone: '#9333EA',
+    bgIcone: '#FAF5FF',
   },
   {
     id: 'atas-votacoes',
@@ -58,20 +63,24 @@ const MODULOS: ModuloItem[] = [
     descricao: 'Decisões da equipe, assembleias e enquetes',
     rota: 'AtasVotacoes',
     icone: Vote,
-    cor: '#A78BFA',
+    corIcone: '#E11D48',
+    bgIcone: '#FFF1F2',
   },
 ];
 
 export default function MaisScreen() {
   return (
-    <ScreenContainer>
+    <SafeAreaView style={styles.safeContainer} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* HEADER COMPACTO NO PADRÃO DO APP */}
       <View style={styles.header}>
         <View style={styles.headerTitleBox}>
-          <Text style={styles.headerTitle}>Mais Módulos</Text>
-          <Text style={styles.headerSubtitle}>Ferramentas e recursos do Hope Escala</Text>
+          <Text style={styles.subTitulo}>Hope Escala Pro</Text>
+          <Text style={styles.headerTitle}>Mais Recursos</Text>
         </View>
         <View style={styles.badge}>
-          <Sparkles size={14} color="#38BDF8" />
+          <Sparkles size={16} color="#FF6B00" />
         </View>
       </View>
 
@@ -79,6 +88,8 @@ export default function MaisScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        <Text style={styles.secaoTitulo}>Módulos Disponíveis</Text>
+
         <View style={styles.lista}>
           {MODULOS.map((item) => {
             const Icone = item.icone;
@@ -89,8 +100,8 @@ export default function MaisScreen() {
                 activeOpacity={0.7}
                 onPress={() => navigate(item.rota)}
               >
-                <View style={[styles.iconBox, { backgroundColor: `${item.cor}1F` }]}>
-                  <Icone size={22} color={item.cor} />
+                <View style={[styles.iconBox, { backgroundColor: item.bgIcone }]}>
+                  <Icone size={20} color={item.corIcone} />
                 </View>
 
                 <View style={styles.infoBox}>
@@ -100,85 +111,104 @@ export default function MaisScreen() {
                   </Text>
                 </View>
 
-                <ChevronRight size={20} color="#64748B" />
+                <ChevronRight size={18} color="#94A3B8" />
               </TouchableOpacity>
             );
           })}
         </View>
       </ScrollView>
-    </ScreenContainer>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: '#F3F4F6',
   },
   headerTitleBox: {
     flex: 1,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.textPrimary || '#F8FAFC',
+  subTitulo: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontWeight: '600',
   },
-  headerSubtitle: {
-    fontSize: 12,
-    color: colors.textSecondary || '#94A3B8',
-    marginTop: 2,
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#1F2937',
+    marginTop: 0,
   },
   badge: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: 10,
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: '#FFF5EB',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
   },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: 14,
+    paddingBottom: 28,
+  },
+  secaoTitulo: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 10,
   },
   lista: {
-    gap: 12,
+    gap: 8,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   iconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
   infoBox: {
     flex: 1,
     marginRight: 8,
   },
   cardTitulo: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#F8FAFC',
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1F2937',
     marginBottom: 2,
   },
   cardDescricao: {
-    fontSize: 12,
-    color: '#94A3B8',
-    lineHeight: 16,
+    fontSize: 11,
+    color: '#6B7280',
+    lineHeight: 15,
   },
 });

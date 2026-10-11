@@ -161,7 +161,7 @@ export default function LoginScreen() {
             </View>
 
             <Text style={styles.brandTitle}>
-              HOPE <Text style={styles.brandTitleHighlight}>ESCALA PRO</Text>
+              HOPE ESCALA <Text style={styles.brandTitleHighlight}>PRO</Text>
             </Text>
             <Text style={styles.brandSubtitle}>
               Acesse sua conta para ver suas escalas
@@ -232,7 +232,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
-    backgroundColor: '#efefee',
+    backgroundColor: '#636361',
     position: 'relative',
   },
   svgBackgroundWrapper: {
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#557d7f',
+    backgroundColor: '#d2e0e1',
     borderRadius: 24,
     padding: 26,
     borderWidth: 1,

@@ -14,7 +14,7 @@
     "android": {
       "package": "com.hope.escala",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/iconAndroid.png",
         "backgroundColor": "#FF6B00"
       }
     },

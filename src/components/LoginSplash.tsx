@@ -12,7 +12,7 @@ export default function LoginSplash() {
   return (
     <View style={styles.container}>
       <StatusBar
-        backgroundColor="#F9FAFB"
+        backgroundColor="#0078f1"
         barStyle="dark-content"
       />
 
@@ -50,7 +50,7 @@ export default function LoginSplash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#d54300',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f0eeee',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     marginTop: 28,
   },
   footer: {
-    color: '#9CA3AF',
+    color: '#f57600',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.8,

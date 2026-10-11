@@ -16,18 +16,26 @@ import RepertorioScreen from '../screens/repertorio/RepertorioScreen';
 import MaisScreen from '../screens/mais/MaisScreen';
 
 const Tab = createBottomTabNavigator();
-const AZUL_CLARO = '#38BDF8';
 
 export default function AppTabNavigator() {
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 10 : 8);
+
+  const paddingInferior = insets.bottom > 0 ? insets.bottom : (Platform.OS === 'android' ? 6 : 8);
+  const alturaBarra = (Platform.OS === 'android' ? 54 : 52) + (insets.bottom > 0 ? insets.bottom : 6);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
       try {
-        NavigationBar.setBackgroundColorAsync(AZUL_CLARO);
-        NavigationBar.setButtonStyleAsync('dark');
-      } catch (error) {}
+        const navBar = NavigationBar as any;
+        if (typeof navBar.setBackgroundColorAsync === 'function') {
+          navBar.setBackgroundColorAsync('#FFFFFF');
+        }
+        if (typeof navBar.setButtonStyleAsync === 'function') {
+          navBar.setButtonStyleAsync('dark');
+        }
+      } catch (error) {
+        // Ignora caso esteja rodando em emulador ou ambiente sem suporte
+      }
     }
   }, []);
 
@@ -37,17 +45,24 @@ export default function AppTabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#033c60',
-          borderTopColor: 'rgba(255, 255, 255, 0.1)',
-          height: 60 + bottomInset,
-          paddingBottom: bottomInset,
-          paddingTop: 8,
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E2E8F0',
+          borderTopWidth: 1,
+          height: alturaBarra,
+          paddingBottom: paddingInferior,
+          paddingTop: 4,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
         },
-        tabBarActiveTintColor: '#38BDF8',
+        tabBarActiveTintColor: '#FF6B00',
         tabBarInactiveTintColor: '#94A3B8',
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '700',
+          marginTop: -2,
         },
       }}
     >
@@ -56,7 +71,7 @@ export default function AppTabNavigator() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Início',
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          tabBarIcon: ({ color }) => <Home color={color} size={20} />,
         }}
       />
       <Tab.Screen
@@ -64,7 +79,7 @@ export default function AppTabNavigator() {
         component={MinhasEscalasScreen}
         options={{
           tabBarLabel: 'Escalas',
-          tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
+          tabBarIcon: ({ color }) => <CalendarDays color={color} size={20} />,
         }}
       />
       <Tab.Screen
@@ -72,7 +87,7 @@ export default function AppTabNavigator() {
         component={RepertorioScreen}
         options={{
           tabBarLabel: 'Repertório',
-          tabBarIcon: ({ color, size }) => <Music color={color} size={size} />,
+          tabBarIcon: ({ color }) => <Music color={color} size={20} />,
         }}
       />
       <Tab.Screen
@@ -80,7 +95,7 @@ export default function AppTabNavigator() {
         component={MaisScreen}
         options={{
           tabBarLabel: 'Mais',
-          tabBarIcon: ({ color, size }) => <Menu color={color} size={size} />,
+          tabBarIcon: ({ color }) => <Menu color={color} size={20} />,
         }}
       />
     </Tab.Navigator>
