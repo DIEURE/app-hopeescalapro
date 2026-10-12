@@ -22,10 +22,9 @@ import {
   Play,
   ExternalLink,
   BookOpen,
-  Plus,
 } from 'lucide-react-native';
 
-import {api} from '../../services/api';
+import { api } from '../../services/api';
 
 export interface EscalaPlaylist {
   id: number;
@@ -99,18 +98,26 @@ export default function RepertorioScreen() {
   };
 
   const abrirLinkPlaylist = async (urlBruta?: string) => {
-    if (!urlBruta) return;
-    const urlFinal = urlBruta.startsWith('http') ? urlBruta : `https://${urlBruta}`;
+    if (!urlBruta || typeof urlBruta !== 'string') {
+      Alert.alert('Aviso', 'Nenhum link foi cadastrado para esta playlist.');
+      return;
+    }
+
+    const limpa = urlBruta.trim();
+    if (!limpa) {
+      Alert.alert('Aviso', 'Link de playlist vazio ou inválido.');
+      return;
+    }
+
+    const urlFinal = /^https?:\/\//i.test(limpa) ? limpa : `https://${limpa}`;
 
     try {
-      const suporta = await Linking.canOpenURL(urlFinal);
-      if (suporta) {
-        await Linking.openURL(urlFinal);
-      } else {
-        Alert.alert('Erro', 'Não foi possível abrir o link fornecido.');
-      }
+      await Linking.openURL(urlFinal);
     } catch {
-      Alert.alert('Erro', 'Falha ao tentar abrir o link da playlist.');
+      Alert.alert(
+        'Erro ao abrir link',
+        'Não foi possível abrir o link no YouTube ou navegador. Verifique se o endereço é válido.'
+      );
     }
   };
 
@@ -198,11 +205,11 @@ export default function RepertorioScreen() {
             <ExternalLink size={11} color="#DC2626" />
           </TouchableOpacity>
 
-          {/* Entrar na Sala de Ensaio */}
+          {/* Entrar na Sala de Ensaio / Estudo */}
           <TouchableOpacity
             style={styles.btnEstudar}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('EstudarPlaylist', { escalaId: item.id })}
+            onPress={() => navigation.navigate('SalaEnsaio', { escalaId: item.id })}
           >
             <BookOpen size={13} color="#FF6B00" />
             <Text style={styles.btnEstudarTexto}>Estudo</Text>
@@ -239,11 +246,11 @@ export default function RepertorioScreen() {
           <Text style={styles.headerTitulo}>Gerenciador de Playlists</Text>
         </View>
 
-        {/* Botão de Estudo Rápido */}
+        {/* Botão de Estudo Rápido no Topo */}
         <TouchableOpacity
           style={styles.btnHeaderAcao}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('EstudarPlaylist')}
+          onPress={() => navigation.navigate('SalaEnsaio')}
         >
           <BookOpen size={14} color="#FFFFFF" />
           <Text style={styles.btnHeaderAcaoTexto}>Ensaio</Text>

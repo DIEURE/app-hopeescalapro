@@ -10,6 +10,8 @@ import {
   Linking,
   Alert,
   StatusBar,
+  Vibration,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -29,7 +31,7 @@ import {
   ChevronDown,
 } from 'lucide-react-native';
 
-import {api} from '../../services/api';
+import { api } from '../../services/api';
 
 export interface EscalaItem {
   id: number;
@@ -62,31 +64,69 @@ export default function SalaEnsaioScreen() {
 
   const rotaEscalaId = route.params?.escalaId || route.params?.id;
 
-  // Estados de Escala
   const [escalas, setEscalas] = useState<EscalaItem[]>([]);
   const [selectedEscalaId, setSelectedEscalaId] = useState<number | null>(
     rotaEscalaId ? Number(rotaEscalaId) : null
   );
   const [modalSeletorAberto, setModalSeletorAberto] = useState(false);
 
-  // Estados de Músicas
   const [songs, setSongs] = useState<EscalaMusicaResponseDTO[]>([]);
   const [selectedSong, setSelectedSong] = useState<EscalaMusicaResponseDTO | null>(null);
 
-  // Carregamentos e Erros
   const [loading, setLoading] = useState(true);
   const [loadingMusicas, setLoadingMusicas] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Metrônomo
+  // Metrônomo via temporizador e vibração nativa
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(72);
   const beatsPerBar = 4;
   const [currentBeat, setCurrentBeat] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Formata o rótulo da escala no formato DD/MM/AAAA - Nome
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentBeatRef = useRef(0);
+
+  const dispararTick = (beat: number) => {
+    try {
+      if (Platform.OS === 'android') {
+        Vibration.vibrate(beat === 0 ? 30 : 15);
+      }
+    } catch {
+      // Ignora erro
+    }
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      currentBeatRef.current = 0;
+      setCurrentBeat(0);
+      dispararTick(0);
+
+      const intervalMs = (60 / Math.max(30, bpm)) * 1000;
+      timerRef.current = setInterval(() => {
+        const proximo = (currentBeatRef.current + 1) % beatsPerBar;
+        currentBeatRef.current = proximo;
+        setCurrentBeat(proximo);
+        dispararTick(proximo);
+      }, intervalMs);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      setCurrentBeat(0);
+      currentBeatRef.current = 0;
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isPlaying, bpm]);
+
   const formatarRotuloEscala = (esc?: EscalaItem | null) => {
     if (!esc) return 'Selecione uma Escala';
 
@@ -113,21 +153,39 @@ export default function SalaEnsaioScreen() {
     return dataFormatada ? `${dataFormatada} - ${nomeCulto}` : `${nomeCulto} (#${esc.id})`;
   };
 
-  // Sanitizador do YouTube idêntico ao da web
   const getYoutubeUrl = (song?: EscalaMusicaResponseDTO | null): string | null => {
     if (!song || !song.youtubeVideoId) return null;
-    const raw = String(song.youtubeVideoId).trim();
-    if (raw.includes('${') || raw.length < 5) return null;
-    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    if (raw.includes('youtu.be/')) {
-      const match = raw.split('youtu.be/')[1]?.split('?')[0];
-      return match ? `https://www.youtube.com/watch?v=${match}` : null;
+    let raw = String(song.youtubeVideoId).trim();
+
+    // Filtra strings corrompidas de interpolação não resolvida
+    if (raw.includes('${') || raw.includes('videoId') || raw.length < 4) {
+      return null;
     }
+
+    // Se já for uma URL completa
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
+      if (raw.includes('watch?v=') || raw.includes('youtu.be/')) {
+        return raw;
+      }
+      return null;
+    }
+
+    // Se for link encurtado sem protocolo
+    if (raw.includes('youtu.be/')) {
+      const partes = raw.split('youtu.be/')[1];
+      const videoId = partes ? partes.split('?')[0].split('&')[0] : null;
+      return videoId ? `https://www.youtube.com/watch?v=${videoId}` : null;
+    }
+
+    // Se for apenas o ID (ex: dQw4w9WgXcQ)
     const cleanId = raw.replace(/[^a-zA-Z0-9_-]/g, '');
-    return cleanId ? `https://www.youtube.com/watch?v=${cleanId}` : null;
+    if (cleanId.length >= 8 && cleanId.length <= 15) {
+      return `https://www.youtube.com/watch?v=${cleanId}`;
+    }
+
+    return null;
   };
 
-  // 1. Carrega todas as escalas
   const carregarEscalas = useCallback(async () => {
     try {
       setLoading(true);
@@ -161,7 +219,6 @@ export default function SalaEnsaioScreen() {
     carregarEscalas();
   }, [carregarEscalas]);
 
-  // 2. Carrega as músicas da escala selecionada
   const carregarMusicas = useCallback(async (escalaId: number) => {
     try {
       setLoadingMusicas(true);
@@ -193,30 +250,12 @@ export default function SalaEnsaioScreen() {
     }
   }, [selectedEscalaId, carregarMusicas]);
 
-  // Troca de música e parada do metrônomo
   const selecionarMusica = (song: EscalaMusicaResponseDTO) => {
     setSelectedSong(song);
     setBpm(Number(song.bpm) || 72);
     setIsPlaying(false);
     setCurrentBeat(0);
   };
-
-  // Ciclo visual do Metrônomo
-  useEffect(() => {
-    if (isPlaying) {
-      const intervalMs = (60 / Math.max(30, bpm)) * 1000;
-      timerRef.current = setInterval(() => {
-        setCurrentBeat((prev) => (prev + 1) % beatsPerBar);
-      }, intervalMs);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-      setCurrentBeat(0);
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isPlaying, bpm]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -233,7 +272,12 @@ export default function SalaEnsaioScreen() {
       return;
     }
     try {
-      await Linking.openURL(url);
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Erro', `Não é possível abrir o link de ${tipo}.`);
+      }
     } catch {
       Alert.alert('Erro', `Não foi possível abrir o link de ${tipo}.`);
     }
@@ -279,7 +323,6 @@ export default function SalaEnsaioScreen() {
             <ChevronDown size={16} color="#4B5563" />
           </TouchableOpacity>
 
-          {/* LISTA EXPANSÍVEL DE ESCALAS */}
           {modalSeletorAberto && (
             <View style={styles.menuEscalas}>
               <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
@@ -332,7 +375,7 @@ export default function SalaEnsaioScreen() {
         ) : loadingMusicas ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color="#FF6B00" />
-            <Text style={styles.feedbackTexto}>Carregando repertório da escala...</Text>
+            <Text style={styles.feedbackTexto}>Carregando repertório...</Text>
           </View>
         ) : error || songs.length === 0 ? (
           <View style={styles.vazioCard}>
@@ -346,7 +389,6 @@ export default function SalaEnsaioScreen() {
           </View>
         ) : (
           <>
-            {/* PAINEL DA MÚSICA SELECIONADA */}
             {selectedSong && (
               <View style={styles.cardPlayer}>
                 <View style={styles.playerTopo}>
@@ -372,7 +414,6 @@ export default function SalaEnsaioScreen() {
                   </View>
                 </View>
 
-                {/* VÍDEO DO YOUTUBE */}
                 {youtubeUrl ? (
                   <TouchableOpacity
                     style={styles.cardYoutube}
@@ -384,7 +425,7 @@ export default function SalaEnsaioScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.youtubeTitulo}>Vídeo de Referência Oficial</Text>
-                      <Text style={styles.youtubeSub}>Toque para abrir no app/navegador</Text>
+                      <Text style={styles.youtubeSub}>Toque para abrir no YouTube</Text>
                     </View>
                     <ExternalLink size={14} color="#DC2626" />
                   </TouchableOpacity>
@@ -405,7 +446,6 @@ export default function SalaEnsaioScreen() {
                       <Text style={styles.metronomoTitulo}>Metrônomo do Ensaio</Text>
                     </View>
 
-                    {/* BEATS VISUAIS */}
                     <View style={styles.beatsRow}>
                       {Array.from({ length: beatsPerBar }).map((_, idx) => (
                         <View
@@ -436,7 +476,7 @@ export default function SalaEnsaioScreen() {
                         <Play size={16} color="#FFFFFF" />
                       )}
                       <Text style={styles.btnClickTexto}>
-                        {isPlaying ? 'Parar Click' : 'Iniciar Click'}
+                        {isPlaying ? 'Parar Metrônomo' : 'Iniciar Metrônomo'}
                       </Text>
                     </TouchableOpacity>
 
@@ -504,7 +544,7 @@ export default function SalaEnsaioScreen() {
               </View>
             )}
 
-            {/* LISTA DA ORDEM DO REPERTÓRIO */}
+            {/* ORDEM DO REPERTÓRIO */}
             <View style={styles.secaoOrdem}>
               <View style={styles.secaoOrdemHeader}>
                 <View style={styles.secaoOrdemTituloRow}>
@@ -570,11 +610,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
