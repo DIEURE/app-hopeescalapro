@@ -30,8 +30,8 @@ import {
   UserX,
 } from 'lucide-react-native';
 
-import {api} from '../../services/api';
-import { ataService, Ata, Pauta, OpcaoPauta } from '../../services/ataService';
+import { ataService, Ata, Pauta } from '../../services/ataService';
+import { isVotacaoExpirada } from '../../utils/dateUtils';
 
 interface UsuarioVoto {
   id: number;
@@ -81,7 +81,7 @@ export default function AtasVotacoesScreen() {
       const arrayAtas = Array.isArray(listaGeral) ? listaGeral : [];
       setAtas(arrayAtas);
 
-      const atasParaDetalhar = arrayAtas.slice(0, 8);
+      const atasParaDetalhar = arrayAtas.slice(0, 10);
       const detalhesResolvidos = await Promise.allSettled(
         atasParaDetalhar.map((a) => ataService.buscarPorId(a.id))
       );
@@ -91,7 +91,11 @@ export default function AtasVotacoesScreen() {
       detalhesResolvidos.forEach((resultado) => {
         if (resultado.status === 'fulfilled' && resultado.value) {
           const ataCompleta = resultado.value;
-          if (ataCompleta.pautas && Array.isArray(ataCompleta.pautas)) {
+
+          const expirouPrazo = isVotacaoExpirada(ataCompleta.dataReuniao);
+          const ataConcluida = ataCompleta.status === 'CONCLUIDA';
+
+          if (!expirouPrazo && !ataConcluida && ataCompleta.pautas && Array.isArray(ataCompleta.pautas)) {
             ataCompleta.pautas.forEach((pauta: any) => {
               const statusVot = String(pauta.statusVotacao || '').toUpperCase();
               if (statusVot === 'EM_VOTACAO') {
@@ -129,8 +133,6 @@ export default function AtasVotacoesScreen() {
           });
         });
 
-      
-
       setAlertasSino(novosAlertas);
     } catch (err: any) {
       console.warn('Erro ao carregar atas:', err?.message || err);
@@ -152,6 +154,17 @@ export default function AtasVotacoesScreen() {
   };
 
   const handleVotar = async (pautaId: number, opcaoId: number) => {
+    const pautaAlvo = pautasAtivas.find((p) => p.id === pautaId);
+
+    if (pautaAlvo && isVotacaoExpirada(pautaAlvo.dataReuniao)) {
+      Alert.alert(
+        'Prazo Expirado',
+        'As votações foram encerradas às 17:00 do dia da reunião.'
+      );
+      carregarDadosCompletos();
+      return;
+    }
+
     try {
       setVotandoPautaId(pautaId);
       await ataService.votarPauta(pautaId, opcaoId);
@@ -182,7 +195,7 @@ export default function AtasVotacoesScreen() {
 
       setAlertasSino((prev) => prev.filter((a) => a.id !== `vot-${pautaId}`));
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Não foi possível registrar seu voto.';
+      const msg = err?.response?.data?.message || 'Não foi possível registrar seu voto.';
       Alert.alert('Atenção', msg);
     } finally {
       setVotandoPautaId(null);
@@ -260,7 +273,7 @@ export default function AtasVotacoesScreen() {
               <CheckCircle size={36} color="#9CA3AF" />
               <Text style={styles.emptyTitulo}>Nenhuma votação aberta no momento</Text>
               <Text style={styles.emptyDesc}>
-                Quando a liderança abrir uma deliberação, as opções aparecerão aqui.
+                Votações pendentes encerram automaticamente às 17:00 do dia da reunião.
               </Text>
             </View>
           }
@@ -273,18 +286,21 @@ export default function AtasVotacoesScreen() {
             const totalParticipantes = listaVotaram.length + listaPendentes.length;
 
             return (
-              <View style={styles.cardItem}>
+              <View style={[styles.cardItem, jaVotou && styles.cardItemConcluido]}>
                 <View style={styles.cardItemTopo}>
-                  <View style={styles.badgeOrigem}>
-                    <FileText size={12} color="#FF6B00" />
-                    <Text style={styles.badgeOrigemTexto} numberOfLines={1}>
+                  <View style={[styles.badgeOrigem, jaVotou && styles.badgeOrigemCinza]}>
+                    <FileText size={12} color={jaVotou ? '#64748B' : '#FF6B00'} />
+                    <Text
+                      style={[styles.badgeOrigemTexto, jaVotou && styles.badgeOrigemTextoCinza]}
+                      numberOfLines={1}
+                    >
                       {item.ataTitulo}
                     </Text>
                   </View>
 
                   {jaVotou ? (
                     <View style={styles.badgeVotado}>
-                      <CheckCircle size={12} color="#15803D" />
+                      <CheckCircle size={12} color="#475569" />
                       <Text style={styles.badgeVotadoTexto}>Voto Computado</Text>
                     </View>
                   ) : (
@@ -295,13 +311,17 @@ export default function AtasVotacoesScreen() {
                   )}
                 </View>
 
-                <Text style={styles.cardItemTitulo}>{item.titulo}</Text>
+                <Text style={[styles.cardItemTitulo, jaVotou && styles.cardItemTituloConcluido]}>
+                  {item.titulo}
+                </Text>
                 {item.descricao ? (
-                  <Text style={styles.cardItemDesc}>{item.descricao}</Text>
+                  <Text style={[styles.cardItemDesc, jaVotou && styles.cardItemDescConcluido]}>
+                    {item.descricao}
+                  </Text>
                 ) : null}
 
                 {/* OPÇÕES COM BARRA DE PORCENTAGEM */}
-                <View style={styles.opcoesLista}>
+                <View style={[styles.opcoesLista, jaVotou && styles.opcoesListaConcluida]}>
                   {item.opcoes && item.opcoes.length > 0 ? (
                     item.opcoes.map((opcao: any) => {
                       const foiEscolhida = opcaoEscolhidaId === opcao.id;
@@ -319,7 +339,6 @@ export default function AtasVotacoesScreen() {
                           onPress={() => handleVotar(item.id, opcao.id)}
                           activeOpacity={0.8}
                         >
-                          {/* Barra de preenchimento de fundo proporcional aos votos */}
                           {jaVotou && pct > 0 && (
                             <View
                               style={[
@@ -332,7 +351,7 @@ export default function AtasVotacoesScreen() {
 
                           <Vote
                             size={14}
-                            color={foiEscolhida ? '#FFFFFF' : '#FF6B00'}
+                            color={foiEscolhida ? '#FFFFFF' : jaVotou ? '#64748B' : '#FF6B00'}
                           />
                           <Text
                             style={[
@@ -385,13 +404,15 @@ export default function AtasVotacoesScreen() {
 
                 {/* PAINEL RETRÁTIL: QUEM VOTOU / PENDENTES */}
                 <TouchableOpacity
-                  style={styles.painelVotantesToggle}
+                  style={[styles.painelVotantesToggle, jaVotou && styles.painelVotantesToggleConcluido]}
                   onPress={() => toggleVotantes(item.id)}
                   activeOpacity={0.7}
                 >
                   <View>
-                    <Text style={styles.painelVotantesTitulo}>Quórum de Votação</Text>
-                    <Text style={styles.painelVotantesContador}>
+                    <Text style={[styles.painelVotantesTitulo, jaVotou && styles.painelVotantesTituloConcluido]}>
+                      Quórum de Votação
+                    </Text>
+                    <Text style={[styles.painelVotantesContador, jaVotou && styles.painelVotantesContadorConcluido]}>
                       {listaVotaram.length}
                       {totalParticipantes > 0 ? ` de ${totalParticipantes}` : ''} votaram
                     </Text>
@@ -399,7 +420,7 @@ export default function AtasVotacoesScreen() {
 
                   <View style={styles.painelVotantesIcon}>
                     {isOpenVotantes ? (
-                      <ChevronUp size={16} color="#FF6B00" />
+                      <ChevronUp size={16} color={jaVotou ? '#64748B' : '#FF6B00'} />
                     ) : (
                       <ChevronDown size={16} color="#6B7280" />
                     )}
@@ -505,66 +526,84 @@ export default function AtasVotacoesScreen() {
           keyExtractor={(item) => String(item.id)}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF6B00']} />}
           contentContainerStyle={styles.listaContent}
-          renderItem={({ item }) => (
-            <View style={styles.cardItem}>
-              <View style={styles.cardItemTopo}>
-                <View style={styles.badgeOrigem}>
-                  <Calendar size={12} color="#6B7280" />
-                  <Text style={[styles.badgeOrigemTexto, { color: '#4B5563' }]}>
-                    {item.dataReuniao || 'Data não definida'}
-                  </Text>
-                </View>
-                <View
-                  style={
-                    item.status === 'CONCLUIDA'
-                      ? styles.badgeVotado
-                      : styles.badgeEmAndamento
-                  }
-                >
-                  <Text
+          renderItem={({ item }) => {
+            const expirada = isVotacaoExpirada(item.dataReuniao);
+            const statusFechado = item.status === 'CONCLUIDA' || expirada;
+
+            return (
+              <View style={[styles.cardItem, statusFechado && styles.cardItemConcluido]}>
+                <View style={styles.cardItemTopo}>
+                  <View style={[styles.badgeOrigem, statusFechado && styles.badgeOrigemCinza]}>
+                    <Calendar size={12} color={statusFechado ? '#64748B' : '#6B7280'} />
+                    <Text
+                      style={[styles.badgeOrigemTexto, statusFechado && styles.badgeOrigemTextoCinza]}
+                    >
+                      {item.dataReuniao || 'Data não definida'}
+                    </Text>
+                  </View>
+                  <View
                     style={
-                      item.status === 'CONCLUIDA'
-                        ? styles.badgeVotadoTexto
-                        : styles.badgeEmAndamentoTexto
+                      statusFechado
+                        ? styles.badgeVotado
+                        : styles.badgeEmAndamento
                     }
                   >
-                    {item.status === 'CONCLUIDA' ? 'Concluída' : 'Em Andamento'}
-                  </Text>
+                    <Text
+                      style={
+                        statusFechado
+                          ? styles.badgeVotadoTexto
+                          : styles.badgeEmAndamentoTexto
+                      }
+                    >
+                      {item.status === 'CONCLUIDA'
+                        ? 'Concluída'
+                        : expirada
+                        ? 'Encerrada (17h)'
+                        : 'Em Andamento'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
 
-              <Text style={styles.cardItemTitulo}>{item.titulo}</Text>
-
-              {item.localReuniao ? (
-                <View style={styles.linhaInfo}>
-                  <MapPin size={12} color="#9CA3AF" />
-                  <Text style={styles.textoInfo}>{item.localReuniao}</Text>
-                </View>
-              ) : null}
-
-              {item.conteudoAta ? (
-                <Text style={styles.cardItemDesc} numberOfLines={2}>
-                  {item.conteudoAta}
+                <Text style={[styles.cardItemTitulo, statusFechado && styles.cardItemTituloConcluido]}>
+                  {item.titulo}
                 </Text>
-              ) : null}
 
-              <TouchableOpacity
-                style={styles.btnVerDetalhes}
-                activeOpacity={0.7}
-                onPress={async () => {
-                  try {
-                    const dados = await ataService.buscarPorId(item.id);
-                    setAtaDetalheModal(dados);
-                  } catch {
-                    Alert.alert('Erro', 'Não foi possível carregar os detalhes.');
-                  }
-                }}
-              >
-                <Text style={styles.btnVerDetalhesTexto}>Ver Pautas da Reunião</Text>
-                <ChevronRight size={14} color="#FF6B00" />
-              </TouchableOpacity>
-            </View>
-          )}
+                {item.localReuniao ? (
+                  <View style={styles.linhaInfo}>
+                    <MapPin size={12} color="#9CA3AF" />
+                    <Text style={styles.textoInfo}>{item.localReuniao}</Text>
+                  </View>
+                ) : null}
+
+                {item.conteudoAta ? (
+                  <Text
+                    style={[styles.cardItemDesc, statusFechado && styles.cardItemDescConcluido]}
+                    numberOfLines={2}
+                  >
+                    {item.conteudoAta}
+                  </Text>
+                ) : null}
+
+                <TouchableOpacity
+                  style={[styles.btnVerDetalhes, statusFechado && styles.btnVerDetalhesConcluido]}
+                  activeOpacity={0.7}
+                  onPress={async () => {
+                    try {
+                      const dados = await ataService.buscarPorId(item.id);
+                      setAtaDetalheModal(dados);
+                    } catch {
+                      Alert.alert('Erro', 'Não foi possível carregar os detalhes.');
+                    }
+                  }}
+                >
+                  <Text style={[styles.btnVerDetalhesTexto, statusFechado && styles.btnVerDetalhesTextoConcluido]}>
+                    Ver Pautas da Reunião
+                  </Text>
+                  <ChevronRight size={14} color={statusFechado ? '#64748B' : '#FF6B00'} />
+                </TouchableOpacity>
+              </View>
+            );
+          }}
         />
       )}
 
@@ -590,7 +629,7 @@ export default function AtasVotacoesScreen() {
                 <CheckCircle size={32} color="#15803D" />
                 <Text style={styles.emptyTitulo}>Você está em dia!</Text>
                 <Text style={styles.emptyDesc}>
-                  Nenhuma pauta pendente de votação ou escala não visualizada.
+                  Nenhuma pauta pendente de votação aberta.
                 </Text>
               </View>
             ) : (
@@ -668,21 +707,31 @@ export default function AtasVotacoesScreen() {
               </Text>
 
               {ataDetalheModal?.pautas && ataDetalheModal.pautas.length > 0 ? (
-                ataDetalheModal.pautas.map((p) => (
-                  <View key={p.id} style={styles.itemPautaModal}>
-                    <View style={styles.itemPautaModalTopo}>
-                      <Text style={styles.itemPautaModalTitulo}>{p.titulo}</Text>
-                      <View style={styles.badgePautaModal}>
-                        <Text style={styles.badgePautaModalTexto}>
-                          {p.statusVotacao || 'CONCLUÍDA'}
-                        </Text>
+                ataDetalheModal.pautas.map((p) => {
+                  const ataExpirou = ataDetalheModal?.dataReuniao
+                    ? isVotacaoExpirada(ataDetalheModal.dataReuniao)
+                    : false;
+
+                  const statusExibicao = ataExpirou || ataDetalheModal?.status === 'CONCLUIDA'
+                    ? 'ENCERRADA'
+                    : p.statusVotacao || 'CONCLUÍDA';
+
+                  return (
+                    <View key={p.id} style={styles.itemPautaModal}>
+                      <View style={styles.itemPautaModalTopo}>
+                        <Text style={styles.itemPautaModalTitulo}>{p.titulo}</Text>
+                        <View style={styles.badgePautaModal}>
+                          <Text style={styles.badgePautaModalTexto}>
+                            {statusExibicao}
+                          </Text>
+                        </View>
                       </View>
+                      {p.descricao ? (
+                        <Text style={styles.itemPautaModalDesc}>{p.descricao}</Text>
+                      ) : null}
                     </View>
-                    {p.descricao ? (
-                      <Text style={styles.itemPautaModalDesc}>{p.descricao}</Text>
-                    ) : null}
-                  </View>
-                ))
+                  );
+                })
               ) : (
                 <Text style={styles.semOpcoesTexto}>Nenhuma pauta registrada nesta ata.</Text>
               )}
@@ -811,6 +860,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
+  cardItemConcluido: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
   cardItemTopo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -826,11 +879,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     maxWidth: '65%',
   },
+  badgeOrigemCinza: {
+    backgroundColor: '#E2E8F0',
+  },
   badgeOrigemTexto: {
     fontSize: 10,
     fontWeight: '700',
     color: '#FF6B00',
     marginLeft: 4,
+  },
+  badgeOrigemTextoCinza: {
+    color: '#64748B',
   },
   badgeAberta: {
     flexDirection: 'row',
@@ -851,7 +910,7 @@ const styles = StyleSheet.create({
   badgeVotado: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#E2E8F0',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -859,7 +918,7 @@ const styles = StyleSheet.create({
   badgeVotadoTexto: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#15803D',
+    color: '#475569',
     marginLeft: 4,
   },
   badgeEmAndamento: {
@@ -879,11 +938,17 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 6,
   },
+  cardItemTituloConcluido: {
+    color: '#475569',
+  },
   cardItemDesc: {
     fontSize: 12,
     color: '#4B5563',
     lineHeight: 18,
     marginBottom: 14,
+  },
+  cardItemDescConcluido: {
+    color: '#64748B',
   },
   linhaInfo: {
     flexDirection: 'row',
@@ -903,6 +968,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },
+  opcoesListaConcluida: {
+    borderTopColor: '#E2E8F0',
+  },
   btnOpcaoVoto: {
     position: 'relative',
     overflow: 'hidden',
@@ -920,19 +988,21 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#E5E7EB',
-    opacity: 0.5,
+    backgroundColor: '#E2E8F0',
+    opacity: 0.7,
   },
   barraProgressoFundoEscolhida: {
-    backgroundColor: '#FF6B00',
-    opacity: 0.25,
+    backgroundColor: '#475569',
+    opacity: 0.18,
   },
   btnOpcaoVotoAtiva: {
-    backgroundColor: '#FF6B00',
-    borderColor: '#FF6B00',
+    backgroundColor: '#475569',
+    borderColor: '#334155',
   },
   btnOpcaoVotoDesabilitada: {
     opacity: 0.85,
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
   },
   btnOpcaoVotoTexto: {
     flex: 1,
@@ -946,12 +1016,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   btnOpcaoVotoTextoDesabilitada: {
-    color: '#374151',
+    color: '#64748B',
   },
   textoPorcentagem: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#6B7280',
+    color: '#64748B',
     marginRight: 8,
     zIndex: 1,
   },
@@ -959,7 +1029,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   badgeQtdVotos: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#CBD5E1',
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -971,7 +1041,7 @@ const styles = StyleSheet.create({
   badgeQtdVotosTexto: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#4B5563',
+    color: '#334155',
   },
   badgeQtdVotosTextoAtivo: {
     color: '#FFFFFF',
@@ -991,16 +1061,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },
+  painelVotantesToggleConcluido: {
+    borderTopColor: '#E2E8F0',
+  },
   painelVotantesTitulo: {
     fontSize: 11,
     fontWeight: '800',
     color: '#4B5563',
+  },
+  painelVotantesTituloConcluido: {
+    color: '#64748B',
   },
   painelVotantesContador: {
     fontSize: 10,
     color: '#FF6B00',
     fontWeight: '700',
     marginTop: 1,
+  },
+  painelVotantesContadorConcluido: {
+    color: '#475569',
   },
   painelVotantesIcon: {
     padding: 4,
@@ -1091,10 +1170,16 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },
+  btnVerDetalhesConcluido: {
+    borderTopColor: '#E2E8F0',
+  },
   btnVerDetalhesTexto: {
     fontSize: 12,
     fontWeight: '700',
     color: '#FF6B00',
+  },
+  btnVerDetalhesTextoConcluido: {
+    color: '#64748B',
   },
   emptyContainer: {
     alignItems: 'center',

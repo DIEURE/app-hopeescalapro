@@ -31,6 +31,15 @@ interface ModuloItem {
 
 const MODULOS: ModuloItem[] = [
   {
+    id: 'escalamensal',
+    titulo: 'Escala Mensal',
+    descricao: 'Visão geral e planejamento mensal das escalas',
+    rota: 'EscalaMensal',
+    icone: CalendarCheck,
+    corIcone: '#4506D9',
+    bgIcone: '#EEF2FF',
+  },
+ /*  {
     id: 'disponibilidade',
     titulo: 'Disponibilidade',
     descricao: 'Informe os cultos e datas em que você pode servir',
@@ -38,8 +47,8 @@ const MODULOS: ModuloItem[] = [
     icone: CalendarCheck,
     corIcone: '#D97706',
     bgIcone: '#FFFBEB',
-  },
-  {
+  }, */
+  /* {
     id: 'perfil',
     titulo: 'Meu Perfil',
     descricao: 'Dados cadastrais, instrumentos e preferências',
@@ -56,7 +65,7 @@ const MODULOS: ModuloItem[] = [
     icone: Users,
     corIcone: '#9333EA',
     bgIcone: '#FAF5FF',
-  },
+  }, */
   {
     id: 'atas-votacoes',
     titulo: 'Atas e Votações',
@@ -71,7 +80,7 @@ const MODULOS: ModuloItem[] = [
 export default function MaisScreen() {
   return (
     <SafeAreaView style={styles.safeContainer} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor="#e6e5e5" />
 
       {/* HEADER COMPACTO NO PADRÃO DO APP */}
       <View style={styles.header}>
@@ -111,7 +120,7 @@ export default function MaisScreen() {
                   </Text>
                 </View>
 
-                <ChevronRight size={18} color="#94A3B8" />
+                <ChevronRight size={18} color="#668abd" />
               </TouchableOpacity>
             );
           })}
@@ -124,7 +133,7 @@ export default function MaisScreen() {
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#e3e7fc',
   },
   header: {
     flexDirection: 'row',

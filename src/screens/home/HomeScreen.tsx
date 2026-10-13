@@ -29,8 +29,7 @@ import {
 } from 'lucide-react-native';
 
 import { useAuth } from '../../contexts/AuthContext';
-import {api} from '../../services/api';
- 
+import { api } from '../../services/api';
 
 interface ProximaEscala {
   id: number;
@@ -60,6 +59,8 @@ interface MenuOption {
   badge?: string;
   badgeBg: string;
   badgeTextColor: string;
+  cardBg: string;
+  cardBorder: string;
   iconBg: string;
   iconColor: string;
   route: string;
@@ -188,11 +189,8 @@ export default function HomeScreen() {
 
   const carregarPautasAtivas = useCallback(async () => {
     try {
-      // Chama direto a instância api já importada na tela
       const resAtas = await api.get('/atas');
       const listaAtas = Array.isArray(resAtas.data) ? resAtas.data : (resAtas.data?.content || []);
-
-      console.log('== RESPOSTA BRUTA DE ATAS ==', JSON.stringify(listaAtas, null, 2));
 
       let todasPautas: any[] = [];
 
@@ -238,8 +236,6 @@ export default function HomeScreen() {
         });
       }
 
-      console.log('== TODAS AS PAUTAS EXTRAÍDAS ==', JSON.stringify(todasPautas, null, 2));
-
       const pautasFiltradas: PautaAviso[] = todasPautas
         .filter((p: any) => {
           const st = String(p.status || p.statusVotacao || '').toUpperCase();
@@ -262,8 +258,6 @@ export default function HomeScreen() {
           };
         });
 
-      console.log('== PAUTAS FILTRADAS FINAL ==', pautasFiltradas);
-
       setAvisosPautas(pautasFiltradas);
       setTotalVotacoesAtivas(pautasFiltradas.length);
     } catch (err) {
@@ -272,7 +266,6 @@ export default function HomeScreen() {
       setTotalVotacoesAtivas(0);
     }
   }, []);
-
 
   const carregarTudo = useCallback(async () => {
     await Promise.all([carregarDadosHome(), carregarPautasAtivas()]);
@@ -301,14 +294,16 @@ export default function HomeScreen() {
   const menuOptions: MenuOption[] = [
     {
       id: '1',
-      title: 'Escalas',
-      description: 'Seus dias e ministérios',
+      title: 'Minhas Escalas',
+      description: 'Aqui está sua escala',
       icon: CalendarDays,
       badge: proximaEscala ? (!proximaEscala.confirmado ? 'Pendente' : undefined) : undefined,
-      badgeBg: '#06c219',
-      badgeTextColor: '#B45309',
-      iconBg: '#FFF7ED',
-      iconColor: '#FF6B00',
+      badgeBg: '#DCFCE7',
+      badgeTextColor: '#15803D',
+      cardBg: '#fad4a7',
+      cardBorder: '#fc8600',
+      iconBg: '#FFFFFF',
+      iconColor: '#EA580C',
       route: 'Escalas',
     },
     {
@@ -318,8 +313,10 @@ export default function HomeScreen() {
       icon: Music,
       badgeBg: '#DCFCE7',
       badgeTextColor: '#15803D',
-      iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      cardBg: '#94b99f',
+      cardBorder: '#BBF7D0',
+      iconBg: '#FFFFFF',
+      iconColor: '#16A34A',
       route: 'Repertorio',
     },
     {
@@ -329,18 +326,22 @@ export default function HomeScreen() {
       icon: Clock,
       badgeBg: '#FEF3C7',
       badgeTextColor: '#B45309',
-      iconBg: '#FFFBEB',
+      cardBg: '#b6e0fc',
+      cardBorder: '#FDE68A',
+      iconBg: '#FFFFFF',
       iconColor: '#D97706',
       route: 'Disponibilidade',
     },
     {
       id: '4',
-      title: 'Ensaios',
+      title: 'Ensaiar o repertório',
       description: 'Cronograma de treinos',
       icon: Users,
       badgeBg: '#F3E8FF',
       badgeTextColor: '#7E22CE',
-      iconBg: '#FAF5FF',
+      cardBg: '#dbbafc',
+      cardBorder: '#E9D5FF',
+      iconBg: '#FFFFFF',
       iconColor: '#9333EA',
       route: 'SalaEnsaio',
     },
@@ -352,7 +353,9 @@ export default function HomeScreen() {
       badge: totalVotacoesAtivas > 0 ? `${totalVotacoesAtivas} ativa` : undefined,
       badgeBg: '#FFE4E6',
       badgeTextColor: '#E11D48',
-      iconBg: '#FFF1F2',
+      cardBg: '#b4f9fc',
+      cardBorder: '#FECDD3',
+      iconBg: '#FFFFFF',
       iconColor: '#E11D48',
       route: 'AtasVotacoes',
     },
@@ -361,9 +364,11 @@ export default function HomeScreen() {
       title: 'Meu Perfil',
       description: 'Dados e ministérios',
       icon: User,
-      badgeBg: '#DBEAFE',
+      badgeBg: '#fedbdb',
       badgeTextColor: '#1D4ED8',
-      iconBg: '#EFF6FF',
+      cardBg: '#7393fd',
+      cardBorder: '#BFDBFE',
+      iconBg: '#FFFFFF',
       iconColor: '#2563EB',
       route: 'Perfil',
     },
@@ -494,7 +499,7 @@ export default function HomeScreen() {
               <Text style={styles.secaoTitulo}>Mural de Decisões</Text>
               <View style={styles.avisoContador}>
                 <Text style={styles.avisoContadorTexto}>
-                  {avisosPautas.length} {avisosPautas.length === 1 ? 'em votação' : 'em votação'}
+                  {avisosPautas.length} em votação
                 </Text>
               </View>
             </View>
@@ -531,10 +536,17 @@ export default function HomeScreen() {
         <View style={styles.grid}>
           {menuOptions.map((item) => {
             const IconComp = item.icon;
+
             return (
               <TouchableOpacity
                 key={item.id}
-                style={styles.cardItem}
+                style={[
+                  styles.cardItem,
+                  {
+                    backgroundColor: item.cardBg,
+                    borderColor: item.cardBorder,
+                  },
+                ]}
                 activeOpacity={0.75}
                 onPress={() => navigation.navigate(item.route)}
               >
@@ -572,7 +584,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#e9f1fa',
   },
   header: {
     paddingHorizontal: 20,
@@ -813,7 +825,7 @@ const styles = StyleSheet.create({
   avisoTitulo: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#1a3355',
     flex: 1,
     marginRight: 8,
   },
@@ -842,11 +854,9 @@ const styles = StyleSheet.create({
   cardItem: {
     width: '48%',
     height: 140,
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     justifyContent: 'space-between',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
@@ -881,12 +891,12 @@ const styles = StyleSheet.create({
   cardItemTitulo: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#037896',
     marginBottom: 2,
   },
   cardItemDescricao: {
-    fontSize: 11,
-    color: '#9CA3AF',
+    fontSize: 12,
+    color: '#470202',
     lineHeight: 15,
   },
 });

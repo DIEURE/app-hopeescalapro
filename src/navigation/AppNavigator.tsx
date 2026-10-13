@@ -4,10 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 
 import LoginScreen from '../screens/auth/LoginScreen';
 import AppTabNavigator from './AppTabNavigator';
-import DisponibilidadeScreen from '../screens/disponibilidade/DisponibilidadeScreen';
+/* import DisponibilidadeScreen from '../screens/disponibilidade/DisponibilidadeScreen';
+import SalaEnsaioScreen from '../screens/salas/SalaEnsaioScreen'; */
 import PerfilScreen from '../screens/perfil/PerfilScreen';
-import SalaEnsaioScreen from '../screens/salas/SalaEnsaioScreen';
 import AtasVotacoesScreen from '../screens/atas/AtasVotacoesScreen';
+import EscalaMensalScreen from '../screens/escalas/EscalaMensalScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,10 +30,11 @@ export default function AppNavigator() {
           <Stack.Screen name="MainTabs" component={AppTabNavigator} />
 
           {/* Telas abertas a partir do "Mais" (cobrem as abas e têm voltar) */}
-          <Stack.Screen name="Disponibilidade" component={DisponibilidadeScreen} />
+  {/*         <Stack.Screen name="Disponibilidade" component={DisponibilidadeScreen} />
+          <Stack.Screen name="SalaEnsaio" component={SalaEnsaioScreen} /> */}
           <Stack.Screen name="Perfil" component={PerfilScreen} />
-          <Stack.Screen name="SalaEnsaio" component={SalaEnsaioScreen} />
           <Stack.Screen name="AtasVotacoes" component={AtasVotacoesScreen} />
+          <Stack.Screen name="EscalaMensal" component={EscalaMensalScreen} />
         </>
       )}
     </Stack.Navigator>
